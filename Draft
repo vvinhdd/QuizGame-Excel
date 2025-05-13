@@ -1,0 +1,24 @@
+# Add some widgets
+label1 = Label(root, text="Label 1", bg="lightblue")
+label2 = Label(root, text="Label 2", bg="lightgreen")
+label3 = Label(root, text="Label 3", bg="lightcoral")
+
+# Place widgets in the grid
+label1.grid(row=1, column=0, sticky="nsew")
+label2.grid(row=1, column=1, sticky="nsew")
+label3.grid(row=0, column=0, columnspan=2, sticky="nsew")
+
+# Configure row and column weights
+root.grid_rowconfigure(0, weight=2)  # Row 0 gets 2 units of weight
+root.grid_rowconfigure(1, weight=1)  # Row 1 gets 1 unit of weight
+root.grid_columnconfigure(0, weight=1)  # Column 0 gets 1 unit of weight
+root.grid_columnconfigure(1, weight=1)  # Column 1 gets 1 unit of weight
+
+# question_A = Frame( nested_frame_1, width=235, height=45, bg="yellow")
+# question_A.grid(row=1, column=0, padx=(10,5), pady=(0,10), sticky="E")
+# question_B = Frame( nested_frame_1, width=235, height=45, bg="yellow")
+# question_B.grid(row=1, column=1, padx=(5,10), pady=(0,10), sticky="E")
+# question_C = Frame( nested_frame_1, width=235, height=45, bg="yellow")
+# question_C.grid(row=2, column=0, padx=(10,5), pady=(0,10), sticky="E")
+# question_D = Frame( nested_frame_1, width=235, height=45, bg="yellow")
+# question_D.grid(row=2, column=1, padx=(5,10), pady=(0,10), sticky="E")
