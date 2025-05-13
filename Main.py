@@ -3,9 +3,15 @@ import pandas as pd
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+import sys, os
 
-# Đọc bộ nguồn từ file Excel
-df = pd.read_excel("Source_2.xlsx", header=1)
+def resource_path(relative_path):
+    """Lấy đường dẫn tuyệt đối khi chạy file .exe hoặc .py"""
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
+df = pd.read_excel(resource_path("Source_2.xlsx"), header=1)
 
 list_group = df['Group'].unique()
 random_choice = random.choice(list_group)
