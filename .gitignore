@@ -1,0 +1,19 @@
+# Bỏ qua cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Bỏ qua file build từ PyInstaller
+*.spec
+dist/
+build/
+*.exe
+
+# Bỏ qua file của hệ điều hành
+.DS_Store
+Thumbs.db
+
+# Bỏ qua file tạm của IDE (VSCode, PyCharm, ...)
+.vscode/
+.idea/
+*.log

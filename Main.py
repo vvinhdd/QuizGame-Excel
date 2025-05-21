@@ -1,184 +1,139 @@
-import random
-import pandas as pd
-from tkinter import *
-from tkinter import ttk
-from tkinter import messagebox
-import sys, os
+import tkinter as tk
+from tkinter import ttk, messagebox
+from quizgame import QuizGame, load_questions
 
-def resource_path(relative_path):
-    """Lấy đường dẫn tuyệt đối khi chạy file .exe hoặc .py"""
-    if hasattr(sys, '_MEIPASS'):
-        return os.path.join(sys._MEIPASS, relative_path)
-    return os.path.join(os.path.abspath("."), relative_path)
+def main():
+    df = load_questions()
+    quiz = QuizGame(df)
 
-df = pd.read_excel(resource_path("Source_2.xlsx"), header=1)
+    root = tk.Tk()
+    root.title("Quiz Game - Excel")
+    root.minsize(800, 600)
+    root.config(bg="skyblue")
 
-list_group = df['Group'].unique()
-random_choice = random.choice(list_group)
+    frame = tk.Frame(root, width=800, height=600)
+    frame.pack(padx=20, pady=20)
 
-question_choice = df[ df['Group'] == random_choice]
-answers_choice = question_choice['Answer'].tolist()
+    # Progress bar frame
+    top_bar_frame = tk.Frame(frame, width=740, height=100, bg="blue")
+    top_bar_frame.grid(row=0, column=0, padx=10, pady=10, columnspan=2, sticky="E")
+    progress_var = tk.DoubleVar()
+    progress = ttk.Progressbar(top_bar_frame, variable=progress_var, orient="horizontal", length=720, mode="determinate")
+    progress.grid(row=0, column=0, padx=10, pady=10)
 
-# print(question_choice)#
-# print("Random number: ", random_choice)#
-# print("Answers: ", answers_choice)#
+    # Main content frames
+    nested_frame_1 = tk.Frame(frame, width=500, height=430, bg="lightgray")
+    nested_frame_1.pack_propagate(False)
+    nested_frame_1.grid(row=1, column=0, padx=10, pady=(0,10), sticky="E")
 
-user_answers = {}
-current_index = 0
-selected_columns = ['Answer', 'W1', 'W2', 'W3']
-def shuffer_choice():
-    re_choice = []
-    for i in range(0,5): # because i make an app work with A-B-C-D
-        row_values = question_choice.iloc[i][selected_columns] # the choices get
-        list_choices = row_values.tolist()
-        random.shuffle(list_choices)
-        re_choice.append(list_choices)
-    return re_choice
-list_choice_done = shuffer_choice()
+    nested_frame_2 = tk.Frame(frame, width=230, height=430, bg="lightgray")
+    nested_frame_2.pack_propagate(False)
+    nested_frame_2.grid(row=1, column=1, padx=(0,10), pady=(0,10), sticky="E")
 
-def show_question():
-    question_label.config(text=question_choice["Question"].iloc[current_index])
-    gen_choices(current_index)
-    color_button_change(current_index)
-    #answer_text.delete(1.0, tk.END)  # Xóa câu trả lời cũ
-    #answer_text.insert(tk.END, user_answers[current_index])  # Điền câu trả lời nếu có
-    progress_var.set((current_index) / (len(question_choice)-1) * 100)  # Cập nhật tiến độ
-    #result_label.config(text="")  # Xóa kết quả cũ khi chuyển sang câu mới
-    check_Button()
+    # Question label
+    topic = tk.Frame(nested_frame_1, width=480, height=300, bg="lightgray")
+    topic.pack_propagate(False)
+    topic.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="E")
+    question_label = tk.Label(topic, text="", bg="lightgray", font=("Arial", 12))
+    question_label.pack(expand=True)
 
-def gen_choices(index):
+    # Answer buttons
+    btn_width = 5
+    btn_height = 2
 
-    list_choices_show = list_choice_done[index]
-    question_A.config(text=list_choices_show[0])
-    question_B.config(text=list_choices_show[1])
-    question_C.config(text=list_choices_show[2])
-    question_D.config(text=list_choices_show[3])
+    question_buttons = []
+    for i in range(4):
+        btn = tk.Button(nested_frame_1, width=btn_width, height=btn_height, text="")
+        question_buttons.append(btn)
 
-def handle_click(btn):
-    global user_answers, current_index
-    selected_text = btn.cget("text")
-    # Lưu lại câu trả lời của người dùng
-    user_answers[current_index] = selected_text
-    # Đổi màu ngay khi nhấn
-    color_button_change(current_index)
+    question_buttons[0].grid(row=1, column=0, padx=(10,5), pady=(0,13), sticky="NSEW")
+    question_buttons[1].grid(row=1, column=1, padx=(5,10), pady=(0,13), sticky="NSEW")
+    question_buttons[2].grid(row=2, column=0, padx=(10,5), pady=(0,13), sticky="NSEW")
+    question_buttons[3].grid(row=2, column=1, padx=(5,10), pady=(0,13), sticky="NSEW")
 
-def next_question():
-    global current_index
-    if current_index < len(question_choice)-1:
-        current_index += 1
-        show_question()
+    # Navigation buttons on nested_frame_2
+    btn_nav_width = 28
+    btn_nav_height = 8
 
-def previous_question():
-    global current_index
-    if current_index > 0:
-        current_index -= 1
-        show_question()
+    def previous_question():
+        if quiz.current_index > 0:
+            quiz.current_index -= 1
+            show_question()
 
-def check_Button():
-    global current_index
-    # Disable next button in last question
-    if current_index == 0:
-        f_previous.config(state=DISABLED)
-    else:
-        f_previous.config(state=NORMAL)
-    # Disable next button in last question
-    if current_index == len(question_choice)-1:
-        f_next.config(state=DISABLED)
-    else:
-        f_next.config(state=NORMAL)
+    def next_question():
+        if quiz.current_index < quiz.total_questions() - 1:
+            quiz.current_index += 1
+            show_question()
 
-def color_button_change(index):
-    global user_answers
-    list_buttons = [question_A, question_B, question_C, question_D]
-    # Change color for each choice store
-    if index in user_answers:
-        for button in list_buttons:
-            if button['text'] == user_answers[index]:
-                button.config(bg='lightblue')
+    def submit():
+        score = quiz.get_score()
+        total = quiz.total_questions()
+        result_text = ""
+        for i in range(total):
+            result_text += f"Question - {i+1}: "
+            if quiz.check_answer(i):
+                result_text += "Correct\n"
             else:
-                button.config(bg='SystemButtonFace')
-    else:
-        for button in list_buttons:
-            button.config(bg='SystemButtonFace')
+                result_text += "Incorrect\n"
+        result_text += f"\nSCORE: {score} / {total}"
+        messagebox.showinfo("RESULT", result_text)
 
+    f_previous = tk.Button(nested_frame_2, width=btn_nav_width, height=btn_nav_height, text="<< Previous", command=previous_question)
+    f_previous.grid(row=0, column=0, padx=10, pady=(10,5), sticky="NSEW")
 
-def submit():
-    global user_answers,answers_choice
-    result_list_check = [ 'empty','empty', 'empty', 'empty', 'empty']
-    result_text = ""
-    score = 0
-    for index in user_answers:
-        if user_answers[index] == answers_choice[index]:
-            result_list_check[index] = 'Correct'
-            score += 1
+    f_next = tk.Button(nested_frame_2, width=btn_nav_width, height=btn_nav_height, text=">> Next", command=next_question)
+    f_next.grid(row=1, column=0, padx=10, pady=(5,5), sticky="NSEW")
+
+    f_submit = tk.Button(nested_frame_2, width=btn_nav_width, height=btn_nav_height, text="SUBMIT", command=submit)
+    f_submit.grid(row=2, column=0, padx=10, pady=(5,10), sticky="NSEW")
+
+    # Handle answer button clicks
+    def on_answer_click(btn_index):
+        def handler():
+            selected_text = question_buttons[btn_index]['text']
+            quiz.save_answer(quiz.current_index, selected_text)
+            update_buttons_color()
+        return handler
+
+    for i, btn in enumerate(question_buttons):
+        btn.config(command=on_answer_click(i))
+
+    def update_buttons_color():
+        idx = quiz.current_index
+        if idx in quiz.user_answers:
+            selected = quiz.user_answers[idx]
+            for btn in question_buttons:
+                if btn['text'] == selected:
+                    btn.config(bg='lightblue')
+                else:
+                    btn.config(bg='SystemButtonFace')
         else:
-            result_list_check[index] = 'Incorrect'
+            for btn in question_buttons:
+                btn.config(bg='SystemButtonFace')
 
-    for j in range(0,5):
-        #print("Question-", j+1," ", result_list_check[j])
-        result_text += f"Question - {j+1}:  {result_list_check[j]}\n"
+    def check_buttons_state():
+        if quiz.current_index == 0:
+            f_previous.config(state=tk.DISABLED)
+        else:
+            f_previous.config(state=tk.NORMAL)
 
-    result_text += f"SCORE: {score} / 5"
-    messagebox.showinfo("RESULT", result_text)
+        if quiz.current_index == quiz.total_questions() - 1:
+            f_next.config(state=tk.DISABLED)
+        else:
+            f_next.config(state=tk.NORMAL)
 
+    def show_question():
+        idx = quiz.current_index
+        question_label.config(text=quiz.get_question(idx))
+        choices = quiz.get_choices(idx)
+        for i in range(4):
+            question_buttons[i].config(text=choices[i])
+        update_buttons_color()
+        check_buttons_state()
+        progress_var.set((idx) / (quiz.total_questions() - 1) * 100)
 
-# -----------UI----------------
-root = Tk()
-root.title("Part-1 App")
-root.minsize(width=800, height=600)
+    show_question()
+    root.mainloop()
 
-root.config(bg="skyblue")
-# Create Frame widget
-frame = Frame(root, width=800, height=600)
-frame.pack(padx=20, pady=20)
-
-# Frame for Progess bar
-top_bar_frame = Frame(frame, width=740, height=100, bg="blue")
-top_bar_frame.grid( row=0, column=0, padx=10, pady=10, columnspan=2, sticky="E")
-# Progess bar
-progress_var = DoubleVar()
-progress = ttk.Progressbar(top_bar_frame, variable=progress_var, orient="horizontal", length=720, mode="determinate")
-progress.grid(row=0, column=0, padx=10, pady=10)
-
-# Frame for Main content
-nested_frame_1 = Frame(frame, width=500, height=430, bg="lightgray")
-nested_frame_1.pack_propagate(False)
-nested_frame_1.grid( row=1, column=0, padx=10, pady=(0,10), sticky="E")
-
-nested_frame_2 = Frame(frame, width=230, height=430, bg="lightgray")
-nested_frame_2.pack_propagate(False)
-nested_frame_2.grid( row=1, column=1, padx=(0,10), pady=(0,10), sticky="E")
-
-# Test consider layout 420 = 300+10 + (?+10) + (?+10)
-topic = Frame( nested_frame_1, width=480, height=300, bg="lightgray")
-topic.pack_propagate(False)
-topic.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="E")
-question_label = Label(topic, text="", bg="lightgray", font=("Arial", 12))
-question_label.pack(expand=True)
-
-# Test consider layout for answer
-btn_x = 5
-btn_h = 2
-question_A = Button( nested_frame_1, width=btn_x, height=btn_h, text="", command=lambda: handle_click(question_A))
-question_A.grid(row=1, column=0, padx=(10,5), pady=(0,13), sticky="NSEW")
-question_B = Button( nested_frame_1, width=btn_x, height=btn_h, text="", command=lambda: handle_click(question_B))
-question_B.grid(row=1, column=1, padx=(5,10), pady=(0,13), sticky="NSEW")
-question_C = Button( nested_frame_1, width=btn_x, height=btn_h, text="", command=lambda: handle_click(question_C))
-question_C.grid(row=2, column=0, padx=(10,5), pady=(0,13), sticky="NSEW")
-question_D = Button( nested_frame_1, width=btn_x, height=btn_h, text="", command=lambda: handle_click(question_D))
-question_D.grid(row=2, column=1, padx=(5,10), pady=(0,13), sticky="NSEW")
-
-# Test consider layout for Function
-btn_x_2 = 28
-btn_h_2 = 8
-f_previous = Button( nested_frame_2, width=btn_x_2, height=btn_h_2, text="<< Previous", command=previous_question)
-f_previous.grid(row=0, column=0, padx=10, pady=(10,5), sticky="NSEW")
-f_next = Button( nested_frame_2, width=btn_x_2, height=btn_h_2, text=">> Next", command=next_question)
-f_next.grid(row=1, column=0, padx=10, pady=(5,5), sticky="NSEW")
-f_submit = Button( nested_frame_2, width=btn_x_2, height=btn_h_2, text="SUBMIT", command=submit)
-f_submit.grid(row=2, column=0, padx=10, pady=(5,10), sticky="NSEW")
-
-# ----------
-show_question()
-
-root.mainloop()
+if __name__ == "__main__":
+    main()
