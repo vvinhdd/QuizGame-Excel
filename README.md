@@ -3,12 +3,16 @@
 Ứng dụng mini giúp ôn tập câu hỏi trắc nghiệm từ file Excel, có giao diện đơn giản với tkinter.
 
 ## 📁 Cấu trúc thư mục
+
+```txt
 QuizGame-Excel/
-├─ quizgame/ # Chứa logic trò chơi và xử lý Excel
-├─ data/ # Chứa file câu hỏi .xlsx
-├─ Main.py # Chạy ứng dụng chính
-├─ requirements.txt # Thư viện cần thiết
+├─ quizgame/                # Chứa logic trò chơi và xử lý Excel
+├─ data/                    # Chứa file câu hỏi .xlsx
+├─ Main.py                  # Chạy ứng dụng chính
+├─ requirements.txt         # Thư viện cần thiết
 └─ README.md # Giới thiệu dự án
+└─ .gitignore               # Bỏ qua file không cần push (cache, spec,...)
+```
 
 ## 📦 Cài đặt
 
